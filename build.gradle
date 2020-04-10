@@ -10,6 +10,7 @@ buildscript {
         constraint_layout = '2.0.0-beta4' // Constraint Layout
         coroutine = '1.3.2' // Coroutine
         koin = '2.1.5' // Koin
+        glide = '4.11.0' // Glide
     }
     repositories {
         google()
