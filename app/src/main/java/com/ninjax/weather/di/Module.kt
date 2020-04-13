@@ -24,7 +24,6 @@ val remoteDataSource = module {
         val interceptor = Interceptor { chain ->
             val original = chain.request()
             val request = original.newBuilder()
-//                .addHeader("", "")
                 .method(original.method(), original.body())
                 .build()
             chain.proceed(request)
