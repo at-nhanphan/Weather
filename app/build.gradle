@@ -69,6 +69,11 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutine"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutine"
 
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$arch_version"
+//    implementation "androidx.lifecycle:lifecycle-extensions:$arch_version"
+//    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$arch_version"
+//    implementation "androidx.lifecycle:lifecycle-runtime-ktx:$arch_version"
+
     // Koin for Android
     implementation "org.koin:koin-android:$koin"
     implementation "org.koin:koin-androidx-viewmodel:$koin"

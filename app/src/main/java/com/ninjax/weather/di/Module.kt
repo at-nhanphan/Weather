@@ -2,6 +2,7 @@ package com.ninjax.weather.di
 
 import androidx.room.Room
 import com.ninjax.weather.data.ApiService
+import com.ninjax.weather.data.repository.WeatherRepository
 import com.ninjax.weather.data.source.local.LocalDB
 import com.ninjax.weather.util.Constants
 import okhttp3.Interceptor
@@ -12,7 +13,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 val repository = module {
-
+    single { WeatherRepository() }
 }
 
 val remoteDataSource = module {
@@ -23,7 +24,7 @@ val remoteDataSource = module {
         val interceptor = Interceptor { chain ->
             val original = chain.request()
             val request = original.newBuilder()
-                .addHeader("", "")
+//                .addHeader("", "")
                 .method(original.method(), original.body())
                 .build()
             chain.proceed(request)
