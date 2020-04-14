@@ -1,7 +1,6 @@
-package com.ninjax.weather.data.repository
+package com.ninjax.weather.data.source.remote
 
 import android.util.Log
-import com.ninjax.weather.data.source.remote.ResultWrapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -9,7 +8,7 @@ import org.json.JSONObject
 import retrofit2.HttpException
 import java.io.IOException
 
-abstract class BaseRepository {
+abstract class SafeApi {
     companion object {
         private const val MESSAGE_KEY = "message"
         private const val ERROR_KEY = "error"
