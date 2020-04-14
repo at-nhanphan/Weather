@@ -1,7 +1,7 @@
-package com.ninjax.weather.data.repository
+package com.ninjax.weather.data.source.remote
 
 import android.util.Log
-import com.ninjax.weather.data.source.remote.ResultWrapper
+import com.ninjax.weather.util.Event
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -9,7 +9,7 @@ import org.json.JSONObject
 import retrofit2.HttpException
 import java.io.IOException
 
-abstract class BaseRepository {
+abstract class SafeApi {
     companion object {
         private const val MESSAGE_KEY = "message"
         private const val ERROR_KEY = "error"
@@ -22,10 +22,10 @@ abstract class BaseRepository {
      */
     suspend inline fun <T> safeApiCall(
         crossinline callFunction: suspend () -> T
-    ): ResultWrapper<T> {
+    ): Event<ResultWrapper<T>> {
         return withContext(Dispatchers.IO) {
             try {
-                ResultWrapper.Success(callFunction.invoke())
+                Event(ResultWrapper.Success(callFunction.invoke()))
             } catch (e: Exception) {
                 Log.e("BaseRemoteRepo", "Call error: ${e.localizedMessage}", e.cause)
                 when (e) {
@@ -36,11 +36,11 @@ abstract class BaseRepository {
 //                            emitter.onError(getErrorMessage(body))
 //                        }
                         val body = e.response()?.errorBody()
-                        ResultWrapper.GenericError(e.code(), getErrorMessage(body))
+                        Event(ResultWrapper.GenericError(e.code(), getErrorMessage(body)))
                     }
 //                    is SocketTimeoutException -> emitter.onError(ErrorType.TIMEOUT)
-                    is IOException -> ResultWrapper.NetworkError
-                    else -> ResultWrapper.GenericError(null, null)
+                    is IOException -> Event(ResultWrapper.NetworkError)
+                    else -> Event(ResultWrapper.GenericError(null, null))
                 }
             }
         }

@@ -4,12 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Observer
 import com.ninjax.weather.R
 import com.ninjax.weather.data.source.remote.ResultWrapper
 import com.ninjax.weather.extension.replaceFragment
 import com.ninjax.weather.ui.base.BaseFragment
 import com.ninjax.weather.ui.detail.DetailFragment
+import com.ninjax.weather.util.EventObserver
 import kotlinx.android.synthetic.main.home_fragment.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -40,7 +40,7 @@ class HomeFragment : BaseFragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
 
-        viewModel.weatherInfo.observe(viewLifecycleOwner, Observer { result ->
+        viewModel.weatherInfo.observe(viewLifecycleOwner, EventObserver { result ->
             when (result) {
                 is ResultWrapper.Success -> {
                     // handle api success
