@@ -21,9 +21,20 @@ android {
     }
 
     buildTypes {
+        debug {
+
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    applicationVariants.all { variant ->
+        switch (variant.getName()) {
+            case "debug":
+                variant.buildConfigField "String", "API_URL", '"https://api.openweathermap.org/data/2.5/"'
+                variant.buildConfigField "String", "API_WEATHER_KEY", '"bc9c8172593bed5c94db8cb512daa662"'
         }
     }
 

@@ -14,9 +14,9 @@ class App : Application() {
         startKoin {
             androidContext(this@App)
             modules(
-                repository,
-                remoteDataSource,
-                localDataSource,
+                repositoriesModule,
+                networkModule,
+                roomModule,
                 splashVM,
                 homeVM
             )
