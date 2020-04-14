@@ -31,11 +31,8 @@ class HomeFragment : BaseFragment() {
                     // handle api success
                     tvWeather.text = result.value.name
                 }
-                is ResultWrapper.NetworkError -> {
-
-                }
-                is ResultWrapper.GenericError -> {
-                }
+                is ResultWrapper.NetworkError -> handleNetworkError()
+                is ResultWrapper.GenericError -> handleGenericError(result.code, result.msg)
             }
         })
     }
