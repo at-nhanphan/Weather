@@ -3,6 +3,7 @@ package com.ninjax.weather.ui
 import android.os.Bundle
 import androidx.fragment.app.FragmentActivity
 import com.ninjax.weather.R
+import com.ninjax.weather.extension.replaceFragment
 import com.ninjax.weather.ui.home.HomeFragment
 
 class MainActivity : FragmentActivity() {
@@ -15,8 +16,6 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun addView() {
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.replace(R.id.container, HomeFragment())
-        transaction.commitAllowingStateLoss()
+        replaceFragment(HomeFragment())
     }
 }
