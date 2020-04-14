@@ -5,7 +5,7 @@ import com.ninjax.weather.util.Constants
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface ApiService {
+interface WeatherApi {
 
     @GET("/weather")
     suspend fun getWeather(

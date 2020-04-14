@@ -1,7 +1,7 @@
 package com.ninjax.weather.di
 
 import androidx.room.Room
-import com.ninjax.weather.data.ApiService
+import com.ninjax.weather.data.WeatherApi
 import com.ninjax.weather.data.repository.WeatherRepository
 import com.ninjax.weather.data.source.local.LocalDB
 import com.ninjax.weather.util.Constants
@@ -13,11 +13,11 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 val repository = module {
-    single { WeatherRepository() }
+    single { WeatherRepository(get()) }
 }
 
 val remoteDataSource = module {
-    single<ApiService> {
+    single<WeatherApi> {
         val httpLogging = HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
@@ -37,7 +37,7 @@ val remoteDataSource = module {
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient)
             .build()
-            .create(ApiService::class.java)
+            .create(WeatherApi::class.java)
     }
 }
 

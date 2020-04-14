@@ -3,6 +3,7 @@ package com.ninjax.weather.data.repository
 import android.util.Log
 import com.ninjax.weather.data.source.remote.ErrorEmitter
 import com.ninjax.weather.data.source.remote.ErrorType
+import com.ninjax.weather.data.source.remote.ResultWrapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -24,30 +25,28 @@ abstract class BaseRepository {
      * @param emitter is the interface that handles the error messages. The error messages must be displayed on the MainThread, or else they would throw an Exception.
      */
     suspend inline fun <T> safeApiCall(
-        emitter: ErrorEmitter,
         crossinline callFunction: suspend () -> T
-    ): T? {
-        return try {
-            val myObject = withContext(Dispatchers.IO) { callFunction.invoke() }
-            myObject
-        } catch (e: Exception) {
-            withContext(Dispatchers.Main) {
-                e.printStackTrace()
+    ): ResultWrapper<T> {
+        return withContext(Dispatchers.IO) {
+            try {
+                ResultWrapper.Success(callFunction.invoke())
+            } catch (e: Exception) {
                 Log.e("BaseRemoteRepo", "Call error: ${e.localizedMessage}", e.cause)
                 when (e) {
                     is HttpException -> {
-                        if (e.code() == 401) emitter.onError(ErrorType.SESSION_EXPIRED)
-                        else {
-                            val body = e.response()?.errorBody()
-                            emitter.onError(getErrorMessage(body))
-                        }
+//                        if (e.code() == 401) emitter.onError(ErrorType.SESSION_EXPIRED)
+//                        else {
+//                            val body = e.response()?.errorBody()
+//                            emitter.onError(getErrorMessage(body))
+//                        }
+                        val body = e.response()?.errorBody()
+                        ResultWrapper.GenericError(e.code(), getErrorMessage(body))
                     }
-                    is SocketTimeoutException -> emitter.onError(ErrorType.TIMEOUT)
-                    is IOException -> emitter.onError(ErrorType.NETWORK)
-                    else -> emitter.onError(ErrorType.UNKNOWN)
+//                    is SocketTimeoutException -> emitter.onError(ErrorType.TIMEOUT)
+                    is IOException -> ResultWrapper.NetworkError
+                    else -> ResultWrapper.GenericError(null, null)
                 }
             }
-            null
         }
     }
 
