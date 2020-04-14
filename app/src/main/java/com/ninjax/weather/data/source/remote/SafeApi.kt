@@ -1,6 +1,7 @@
 package com.ninjax.weather.data.source.remote
 
 import android.util.Log
+import com.ninjax.weather.util.Event
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.ResponseBody
@@ -21,10 +22,10 @@ abstract class SafeApi {
      */
     suspend inline fun <T> safeApiCall(
         crossinline callFunction: suspend () -> T
-    ): ResultWrapper<T> {
+    ): Event<ResultWrapper<T>> {
         return withContext(Dispatchers.IO) {
             try {
-                ResultWrapper.Success(callFunction.invoke())
+                Event(ResultWrapper.Success(callFunction.invoke()))
             } catch (e: Exception) {
                 Log.e("BaseRemoteRepo", "Call error: ${e.localizedMessage}", e.cause)
                 when (e) {
@@ -35,11 +36,11 @@ abstract class SafeApi {
 //                            emitter.onError(getErrorMessage(body))
 //                        }
                         val body = e.response()?.errorBody()
-                        ResultWrapper.GenericError(e.code(), getErrorMessage(body))
+                        Event(ResultWrapper.GenericError(e.code(), getErrorMessage(body)))
                     }
 //                    is SocketTimeoutException -> emitter.onError(ErrorType.TIMEOUT)
-                    is IOException -> ResultWrapper.NetworkError
-                    else -> ResultWrapper.GenericError(null, null)
+                    is IOException -> Event(ResultWrapper.NetworkError)
+                    else -> Event(ResultWrapper.GenericError(null, null))
                 }
             }
         }

@@ -5,6 +5,6 @@ import retrofit2.http.GET
 
 interface WeatherApi {
 
-    @GET("weather?q=London")
+    @GET("weather?i=London")
     suspend fun getWeather(): Weather
 }

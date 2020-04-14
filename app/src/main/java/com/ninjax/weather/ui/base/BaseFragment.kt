@@ -2,7 +2,6 @@ package com.ninjax.weather.ui.base
 
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
-import java.net.HttpURLConnection
 
 open class BaseFragment : Fragment() {
 
@@ -14,13 +13,13 @@ open class BaseFragment : Fragment() {
     }
 
     protected fun handleGenericError(code: Int?, msg: String?) {
-        when (code) {
-            HttpURLConnection.HTTP_NOT_FOUND -> {
-                AlertDialog.Builder(this.requireContext())
-                    .setMessage("Notfound Error")
-                    .create()
-                    .show()
-            }
-        }
+//        when (code) {
+//            HttpURLConnection.HTTP_NOT_FOUND -> {
+        AlertDialog.Builder(this.requireContext())
+            .setMessage("Notfound Error")
+            .create()
+            .show()
+//            }
+//        }
     }
 }
