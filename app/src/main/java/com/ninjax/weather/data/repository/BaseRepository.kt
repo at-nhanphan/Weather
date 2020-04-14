@@ -1,8 +1,6 @@
 package com.ninjax.weather.data.repository
 
 import android.util.Log
-import com.ninjax.weather.data.source.remote.ErrorEmitter
-import com.ninjax.weather.data.source.remote.ErrorType
 import com.ninjax.weather.data.source.remote.ResultWrapper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -10,7 +8,6 @@ import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.HttpException
 import java.io.IOException
-import java.net.SocketTimeoutException
 
 abstract class BaseRepository {
     companion object {
@@ -22,7 +19,6 @@ abstract class BaseRepository {
      * Function that executes the given function on Dispatchers.IO context and switch to Dispatchers.Main context when an error occurs
      * @param callFunction is the function that is returning the wanted object. It must be a suspend function. Eg:
      * override suspend fun loginUser(body: LoginUserBody, emitter: RemoteErrorEmitter): LoginUserResponse?  = safeApiCall( { authApi.loginUser(body)} , emitter)
-     * @param emitter is the interface that handles the error messages. The error messages must be displayed on the MainThread, or else they would throw an Exception.
      */
     suspend inline fun <T> safeApiCall(
         crossinline callFunction: suspend () -> T
@@ -52,31 +48,27 @@ abstract class BaseRepository {
 
     /**
      * Function that executes the given function in whichever thread is given. Be aware, this is not friendly with Dispatchers.IO,
-     * since [ErrorEmitter] is intended to display messages to the user about error from the server/DB.
      * @param callFunction is the function that is returning the wanted object. Eg:
      * override suspend fun loginUser(body: LoginUserBody, emitter: RemoteErrorEmitter): LoginUserResponse?  = safeApiCall( { authApi.loginUser(body)} , emitter)
-     * @param emitter is the interface that handles the error messages. The error messages must be displayed on the MainThread, or else they would throw an Exception.
      */
-    inline fun <T> safeApiCallNoContext(emitter: ErrorEmitter, callFunction: () -> T): T? {
+    inline fun <T> safeApiCallNoContext(callFunction: () -> T): ResultWrapper<T> {
         return try {
-            val myObject = callFunction.invoke()
-            myObject
+            ResultWrapper.Success(callFunction.invoke())
         } catch (e: Exception) {
-            e.printStackTrace()
-            Log.e("BaseRemoteRepo", "Call error: ${e.localizedMessage}", e.cause)
             when (e) {
                 is HttpException -> {
-                    if (e.code() == 401) emitter.onError(ErrorType.SESSION_EXPIRED)
-                    else {
-                        val body = e.response()?.errorBody()
-                        emitter.onError(getErrorMessage(body))
-                    }
+//                    if (e.code() == 401) emitter.onError(ErrorType.SESSION_EXPIRED)
+//                    else {
+//                        val body = e.response()?.errorBody()
+//                        emitter.onError(getErrorMessage(body))
+//                    }
+                    val body = e.response()?.errorBody()
+                    ResultWrapper.GenericError(e.code(), getErrorMessage(body))
                 }
-                is SocketTimeoutException -> emitter.onError(ErrorType.TIMEOUT)
-                is IOException -> emitter.onError(ErrorType.NETWORK)
-                else -> emitter.onError(ErrorType.UNKNOWN)
+//                is SocketTimeoutException -> emitter.onError(ErrorType.TIMEOUT)
+                is IOException -> ResultWrapper.NetworkError
+                else -> ResultWrapper.GenericError(null, null)
             }
-            null
         }
     }
 
