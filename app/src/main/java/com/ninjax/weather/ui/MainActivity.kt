@@ -16,6 +16,6 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun addView() {
-        replaceFragment(HomeFragment())
+        replaceFragment(HomeFragment(), addBackStack = false)
     }
 }
