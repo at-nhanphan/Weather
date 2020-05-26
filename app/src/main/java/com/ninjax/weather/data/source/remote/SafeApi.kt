@@ -24,7 +24,6 @@ abstract class SafeApi {
                 Log.e("BaseRemoteRepo", "Call error: ${e.localizedMessage}", e.cause)
                 when (e) {
                     is HttpException -> {
-
                         val body = e.response()?.errorBody()
                         ResultWrapper.GenericError(e.code(), getErrorMessage(body))
                     }

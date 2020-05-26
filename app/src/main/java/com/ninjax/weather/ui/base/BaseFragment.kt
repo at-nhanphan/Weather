@@ -12,11 +12,11 @@ open class BaseFragment : Fragment() {
         dialog.show()
     }
 
-    protected fun handleGenericError(code: Int?, msg: String?) {
+    protected fun handleGenericError(msg: String?) {
 //        when (code) {
 //            HttpURLConnection.HTTP_NOT_FOUND -> {
         AlertDialog.Builder(this.requireContext())
-            .setMessage("Notfound Error")
+            .setMessage(msg)
             .create()
             .show()
 //            }
