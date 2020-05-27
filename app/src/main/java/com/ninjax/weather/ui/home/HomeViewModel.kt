@@ -13,16 +13,21 @@ import org.koin.core.inject
 
 class HomeViewModel : BaseViewModel(), KoinComponent {
     private val weatherRepository by inject<WeatherRepository>()
-
     private val weatherResult = MutableLiveData<ResultWrapper<Weather>>()
 
-    fun callApiWeather() {
+    init {
+        callApiWeather()
+    }
+
+    fun getWeatherResult(): LiveData<ResultWrapper<Weather>> = weatherResult
+
+    private fun callApiWeather() {
         viewModelScope.launch {
             postStateLoadingProgress(isLoading = true)
             val weather = weatherRepository.getWeather()
             when (weather) {
                 is ResultWrapper.NetworkError -> {
-                    postApiException("NetworkError")
+                    postApiException("Network Error")
                 }
                 is ResultWrapper.GenericError -> {
                     postApiException(weather.msg ?: "Generic Error")
@@ -32,6 +37,4 @@ class HomeViewModel : BaseViewModel(), KoinComponent {
             postStateLoadingProgress(isLoading = false)
         }
     }
-
-    fun getWeatherResult(): LiveData<ResultWrapper<Weather>> = weatherResult
 }

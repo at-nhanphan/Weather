@@ -29,8 +29,6 @@ class HomeFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         // Init events
         initEvents()
-        // call api
-        viewModel.callApiWeather()
     }
 
     private fun initEvents() {
