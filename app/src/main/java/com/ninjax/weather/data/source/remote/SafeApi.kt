@@ -1,53 +1,53 @@
 package com.ninjax.weather.data.source.remote
 
-import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.ResponseBody
-import org.json.JSONObject
 import retrofit2.HttpException
+import retrofit2.Response
 import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
+import javax.net.ssl.HttpsURLConnection
 
 abstract class SafeApi {
-    companion object {
-        private const val MESSAGE_KEY = "message"
-        private const val ERROR_KEY = "error"
-    }
 
-    suspend inline fun <T> safeApiCall(
-        crossinline callFunction: suspend () -> T
-    ): ResultWrapper<T> {
+    suspend inline fun <T> safeApiCall(crossinline callFunction: suspend () -> T): ResultWrapper<T> {
         return withContext(Dispatchers.IO) {
             try {
                 ResultWrapper.Success(callFunction.invoke())
             } catch (e: Exception) {
-                Log.e("BaseRemoteRepo", "Call error: ${e.localizedMessage}", e.cause)
                 when (e) {
                     is HttpException -> {
-                        val body = e.response()?.errorBody()
-                        ResultWrapper.GenericError(e.code(), getErrorMessage(body))
+                        val response: Response<*>? = e.response()
+                        when (response?.code()) {
+                            HttpsURLConnection.HTTP_BAD_REQUEST -> {
+                                ResultWrapper.GenericError()
+                            }
+                            HttpsURLConnection.HTTP_INTERNAL_ERROR -> {
+                                ResultWrapper.GenericError()
+                            }
+                            else -> {
+                                ResultWrapper.GenericError()
+                            }
+                        }
+
                     }
-                    is IOException -> ResultWrapper.NetworkError
+                    is IOException -> {
+                        when (e) {
+                            is UnknownHostException -> {
+                                ResultWrapper.NetworkError
+                            }
+                            is SocketTimeoutException -> {
+                                ResultWrapper.NetworkError
+                            }
+                            else -> {
+                                ResultWrapper.NetworkError
+                            }
+                        }
+                    }
                     else -> ResultWrapper.GenericError(null, null)
                 }
             }
-        }
-    }
-
-    fun getErrorMessage(responseBody: ResponseBody?): String {
-        return try {
-            val jsonObject = JSONObject(responseBody!!.string())
-            when {
-                jsonObject.has(MESSAGE_KEY) -> jsonObject.getString(
-                    MESSAGE_KEY
-                )
-                jsonObject.has(ERROR_KEY) -> jsonObject.getString(
-                    ERROR_KEY
-                )
-                else -> "Something wrong happened"
-            }
-        } catch (e: Exception) {
-            "Something wrong happened"
         }
     }
 }

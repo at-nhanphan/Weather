@@ -10,12 +10,11 @@ import com.ninjax.weather.data.source.remote.ResultWrapper
 import com.ninjax.weather.extension.replaceFragment
 import com.ninjax.weather.ui.base.BaseFragment
 import com.ninjax.weather.ui.detail.DetailFragment
-import com.ninjax.weather.util.EventObserver
 import kotlinx.android.synthetic.main.home_fragment.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class HomeFragment : BaseFragment() {
-    private val viewModel by viewModel<HomeViewModel>()
+class HomeFragment : BaseFragment<HomeViewModel>() {
+    override fun viewModel(): HomeViewModel = viewModel<HomeViewModel>().value
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,6 +28,7 @@ class HomeFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         // Init events
         initEvents()
+
     }
 
     private fun initEvents() {
@@ -39,16 +39,9 @@ class HomeFragment : BaseFragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        // handle API exception
-        viewModel.getApiException().observe(viewLifecycleOwner, EventObserver { msg ->
-            handleGenericError(msg)
-        })
-        // handle loading state
-        viewModel.getLoadingApiException().observe(viewLifecycleOwner, EventObserver { isLoading ->
-            progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
-        })
+
         // handle result from API
-        viewModel.getWeatherResult().observe(viewLifecycleOwner, Observer { result ->
+        viewModel().getWeatherResult().observe(viewLifecycleOwner, Observer { result ->
             if (result is ResultWrapper.Success) {
                 tvWeather.text = result.value.name
             }

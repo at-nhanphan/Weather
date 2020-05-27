@@ -24,8 +24,10 @@ class HomeViewModel : BaseViewModel(), KoinComponent {
     private fun callApiWeather() {
         viewModelScope.launch {
             postStateLoadingProgress(isLoading = true)
-            val weather = weatherRepository.getWeather()
-            when (weather) {
+            when (val weather = weatherRepository.getWeather()) {
+                is ResultWrapper.Success -> {
+                    weatherResult.postValue(weather)
+                }
                 is ResultWrapper.NetworkError -> {
                     postApiException("Network Error")
                 }
@@ -33,7 +35,6 @@ class HomeViewModel : BaseViewModel(), KoinComponent {
                     postApiException(weather.msg ?: "Generic Error")
                 }
             }
-            weatherResult.postValue(weather)
             postStateLoadingProgress(isLoading = false)
         }
     }
