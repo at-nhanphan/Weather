@@ -1,22 +1,14 @@
 package com.ninjax.weather.di
 
-import androidx.room.Room
 import com.ninjax.weather.BuildConfig
 import com.ninjax.weather.data.WeatherApi
-import com.ninjax.weather.data.repository.WeatherRepository
-import com.ninjax.weather.data.source.local.LocalDB
 import com.ninjax.weather.data.source.remote.AuthInterceptor
-import com.ninjax.weather.util.Constants
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.dsl.module
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-
-val repositoriesModule = module {
-    single { WeatherRepository(get()) }
-}
 
 val networkModule = module {
     factory { AuthInterceptor() }
@@ -25,15 +17,6 @@ val networkModule = module {
     factory {
         provideWeatherApi(get())
     }
-}
-
-val roomModule = module {
-    single {
-        Room.databaseBuilder(get(), LocalDB::class.java, Constants.Config.DATABASE)
-            .fallbackToDestructiveMigration()
-            .build()
-    }
-    single { get<LocalDB>().weatherDao() }
 }
 
 fun provideOkHttpClient(authInterceptor: AuthInterceptor): OkHttpClient {

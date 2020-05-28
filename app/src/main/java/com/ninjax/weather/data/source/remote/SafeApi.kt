@@ -1,91 +1,53 @@
 package com.ninjax.weather.data.source.remote
 
-import android.util.Log
-import com.ninjax.weather.util.Event
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.ResponseBody
-import org.json.JSONObject
 import retrofit2.HttpException
+import retrofit2.Response
 import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
+import javax.net.ssl.HttpsURLConnection
 
 abstract class SafeApi {
-    companion object {
-        private const val MESSAGE_KEY = "message"
-        private const val ERROR_KEY = "error"
-    }
 
-    /**
-     * Function that executes the given function on Dispatchers.IO context and switch to Dispatchers.Main context when an error occurs
-     * @param callFunction is the function that is returning the wanted object. It must be a suspend function. Eg:
-     * override suspend fun loginUser(body: LoginUserBody, emitter: RemoteErrorEmitter): LoginUserResponse?  = safeApiCall( { authApi.loginUser(body)} , emitter)
-     */
-    suspend inline fun <T> safeApiCall(
-        crossinline callFunction: suspend () -> T
-    ): Event<ResultWrapper<T>> {
+    suspend inline fun <T> safeApiCall(crossinline callFunction: suspend () -> T): ResultWrapper<T> {
         return withContext(Dispatchers.IO) {
             try {
-                Event(ResultWrapper.Success(callFunction.invoke()))
+                ResultWrapper.Success(callFunction.invoke())
             } catch (e: Exception) {
-                Log.e("BaseRemoteRepo", "Call error: ${e.localizedMessage}", e.cause)
                 when (e) {
                     is HttpException -> {
-//                        if (e.code() == 401) emitter.onError(ErrorType.SESSION_EXPIRED)
-//                        else {
-//                            val body = e.response()?.errorBody()
-//                            emitter.onError(getErrorMessage(body))
-//                        }
-                        val body = e.response()?.errorBody()
-                        Event(ResultWrapper.GenericError(e.code(), getErrorMessage(body)))
+                        val response: Response<*>? = e.response()
+                        when (response?.code()) {
+                            HttpsURLConnection.HTTP_BAD_REQUEST -> {
+                                ResultWrapper.GenericError()
+                            }
+                            HttpsURLConnection.HTTP_INTERNAL_ERROR -> {
+                                ResultWrapper.GenericError()
+                            }
+                            else -> {
+                                ResultWrapper.GenericError()
+                            }
+                        }
+
                     }
-//                    is SocketTimeoutException -> emitter.onError(ErrorType.TIMEOUT)
-                    is IOException -> Event(ResultWrapper.NetworkError)
-                    else -> Event(ResultWrapper.GenericError(null, null))
+                    is IOException -> {
+                        when (e) {
+                            is UnknownHostException -> {
+                                ResultWrapper.NetworkError
+                            }
+                            is SocketTimeoutException -> {
+                                ResultWrapper.NetworkError
+                            }
+                            else -> {
+                                ResultWrapper.NetworkError
+                            }
+                        }
+                    }
+                    else -> ResultWrapper.GenericError(null, null)
                 }
             }
-        }
-    }
-
-    /**
-     * Function that executes the given function in whichever thread is given. Be aware, this is not friendly with Dispatchers.IO,
-     * @param callFunction is the function that is returning the wanted object. Eg:
-     * override suspend fun loginUser(body: LoginUserBody, emitter: RemoteErrorEmitter): LoginUserResponse?  = safeApiCall( { authApi.loginUser(body)} , emitter)
-     */
-    inline fun <T> safeApiCallNoContext(callFunction: () -> T): ResultWrapper<T> {
-        return try {
-            ResultWrapper.Success(callFunction.invoke())
-        } catch (e: Exception) {
-            when (e) {
-                is HttpException -> {
-//                    if (e.code() == 401) emitter.onError(ErrorType.SESSION_EXPIRED)
-//                    else {
-//                        val body = e.response()?.errorBody()
-//                        emitter.onError(getErrorMessage(body))
-//                    }
-                    val body = e.response()?.errorBody()
-                    ResultWrapper.GenericError(e.code(), getErrorMessage(body))
-                }
-//                is SocketTimeoutException -> emitter.onError(ErrorType.TIMEOUT)
-                is IOException -> ResultWrapper.NetworkError
-                else -> ResultWrapper.GenericError(null, null)
-            }
-        }
-    }
-
-    fun getErrorMessage(responseBody: ResponseBody?): String {
-        return try {
-            val jsonObject = JSONObject(responseBody!!.string())
-            when {
-                jsonObject.has(MESSAGE_KEY) -> jsonObject.getString(
-                    MESSAGE_KEY
-                )
-                jsonObject.has(ERROR_KEY) -> jsonObject.getString(
-                    ERROR_KEY
-                )
-                else -> "Something wrong happened"
-            }
-        } catch (e: Exception) {
-            "Something wrong happened"
         }
     }
 }
